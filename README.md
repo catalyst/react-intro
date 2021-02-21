@@ -68,6 +68,9 @@ If you have a favourite code editor feel free to use that, but I recommend
 [language-javascript-jsx](https://atom.io/packages/language-javascript-jsx)
 package.
 
+To install Atom:
+`sudo apt-get install atom`
+
 In Atom, right click in the left panel, select `Add Project Folder` and open the
 `react-intro/tutorial` folder. You should see a number of already existing files.
 
@@ -81,8 +84,7 @@ npm install --save-dev react react-dom
 ```
 
 I also set up a [Webpack](https://webpack.github.io/) based development build
-process. If you'd like to learn more about how that works, I run a
-JavaScript Build Pipelines training.
+process.
 
 If you want to refer to a finished, working version of today's project, have a
 look at the `example` folder.
@@ -118,22 +120,6 @@ npm start
 Right click on the link to open in a browser. This terminal process will watch
 for changes and automatically recompile _and_ reload the pages in your browser.
 to quit from it use _Control-C_.
-
-## ES6
-
-[Cheatsheet](https://github.com/DrkSephy/es6-cheatsheet)
-
-Some basics:
-
-* instead of `var`, use `let` for variables that will change their value over time, and `const` for variables which cannot be reassigned
-* functions can be written as arrow functions:
-```
-(param1, param2) => {
-    // body of function goes here
-}
-```
-* we can import from other files using modules
-* classes can be created without needing to mess around with function prototypes
 
 ## Your first component
 
@@ -593,11 +579,11 @@ class Homepage extends Component {
 ```
 
 ```
-<Search searchValueEntered={this.searchValueEntered} />
+<Search userInput={this.userInput} />
 ```
 
 Now we've passed this down to to Search we can pick it up there and use it (not
-forgetting to set up a PropType for `searchValueEntered`):
+forgetting to set up a PropType for `userInput`):
 
 ```
 import React, { Component, } from 'react'; 
@@ -609,13 +595,13 @@ import PropTypes from 'prop-types';
     this.setState({
       searchFieldValue: event.target.value
     });
-    this.props.searchValueEntered(event.target.value);
+    this.props.userInput(event.target.value);
   }
 
 ...
 
 Search.propTypes = {
-  searchValueEntered: PropTypes.func.isRequired
+  userInput: PropTypes.func.isRequired
 };
 
 export default Search;
@@ -776,176 +762,15 @@ Then add the NavLinks above the routes:
   </Router>,
 ```
 
-## Using third party components
-
-### react-scroll-up
-
-There plenty of react-specific add ons that are typically very easy to
-integrate. For example,
-[react-scroll-up](https://www.npmjs.com/package/react-scroll-up), which adds a
-flaoting back to top button, can be installed by:
-
-```
-npm install --save-dev react-scroll-up
-```
-
-and then used very easily, for example here in
-`src/components/homepage/homepage.jsx`:
-
-```
-import ScrollToTop from 'react-scroll-up';
-```
-
-with the component itself being added just before the closing `div`:
-
-```
-<ScrollToTop showUnder={160}>
-  <button className="btn btn-primary">Back to top</button>
-</ScrollToTop>
-```
-
-The actual contents of the button are totally customisable, you can put whatever
-markup you like in there.
-
-### clipboard.js
-
-You might also want to integrate another library that's not React-specific. This
-has a bit more overhead but is usually doable. For example, if we wanted to add
-a `Copy` button to each email addresses, we might want to utilise
-[Clipboard.js](https://clipboardjs.com/).
-
-Hopefully the library you want to use supports being included as a module and
-can be added as an npm dep - Clipboard.js does and can:
-
-```
-npm install clipboard --save-dev
-```
-
-To use it, we want to add one per row. This is a good time to break up our Table
-component up further.
-
-Create a new file, `src/components/row/row.jsx`, into which we'll set up a
-component and copy over some of the logic from Table:
-
-```
-import React, { Component, } from 'react'; 
-import PropTypes from 'prop-types';
-
-class Row extends Component {
-  
-  render () {  
-    let name = this.props.mp.name.split(',');
-    name = name.reverse().join(' ');
-    
-    return (
-      <tr>
-        <td>{name}</td>
-        <td>{this.props.mp.party}</td>
-        <td>{this.props.mp.electorate}</td>
-        <td>
-          <a href={'mailto:' + this.props.mp.email}>
-            <span ref={(ref) => { this.email = ref; }}>{this.props.mp.email}</span>
-          </a>
-        </td>
-      </tr>
-    );
-  }
-}
-
-Row.propTypes = {
-  mp: PropTypes.object.isRequired
-};
-
-export default Row;
-```
-
-Notice that the `tr` no longer has a `key` attribute, we'll keep that in the
-Table component, in which we need to make some small changes, first importing
-the new component:
-
-```
-import Row from 'components/row/row';
-```
-
-Just the contents of the `rows.push` command needs to change:
-
-```
-if (!searchValue || fulltext.indexOf(searchValue) > -1) {
-  rows.push(
-    <Row key={index} mp={mp} />
-  );
-}
-```
-
-Now we're in good shape to add the clipboard library over in our Row component.
-
-```
-import Clipboard from 'clipboard';
-```
-
-We want the clipboard to be hooked up to a button on the page, and that button
-on the page needs to copy the email. To be able to reach into the virtual DOM
-and attach the library, we need to pass in a reference to the element in the
-_real_ DOM. We do this using `ref`:
-
-```
-<td>
-  <a href={'mailto:' + this.props.mp.email}>
-    <span ref={(ref) => { this.email = ref; }}>{this.props.mp.email}</span>
-  </a>
-  <button className="copybutton btn btn-default" ref={(ref) => { this.copy = ref; }}>Copy</button>
-</td>
-```
-
-We want the clipboard to be set up when the component first loads. So we'll use
-a lifecycle event, `componentDidMount`:
-
-```
-componentDidMount() {
-  new Clipboard(this.copy, {
-    text: () => {
-      return this.email.innerText;
-    }
-  });
-}
-```
-
-That should work, but really when we set up these sorts of hooks, we should tidy
-up after ourselves when the component is later unloaded:
-
-```
-class Row extends Component {
-  constructor (props) {
-    super(props);
-    
-    this.copyAction = null;
-  }
-  
-  componentDidMount() {
-    this.copyAction = new Clipboard(this.copy, {
-      text: () => {
-        return this.email.innerText;
-      }
-    });
-  }
-  
-  componentWillUnmount() {
-    this.copyAction.destroy();
-  }
-```
-
-### Component lifecycles
+## Component lifecycles
 
 There are many [component lifecycle
 events](https://facebook.github.io/react/docs/react-component.html#the-component-lifecycle)
-that trigger on particular mount, update or unmount events.
+that trigger on particular mount, update or unmount events. The most common ones are:
 
-If our list of MPs that gets passed into Table could be altered by a component
-further up the chain, then we might have needed to use the
-[componentWillReceiveProps()](https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops)
-event to re-render our component. That and
-[componentDidMount()](https://facebook.github.io/react/docs/react-component.html#componentdidmount)
-often end up sharing a lot of logic that you should abstract out.
+* componentDidMount()
+* componentDidUpdate()
+* componentWillUnmount()
 
 ## Further reading
 
