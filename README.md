@@ -772,6 +772,10 @@ that trigger on particular mount, update or unmount events. The most common ones
 * componentDidUpdate()
 * componentWillUnmount()
 
+## React Hooks
+
+[React hooks](https://reactjs.org/docs/hooks-intro.html) are the latest substantial change in React. It allows us to avoid using classes altogether, and use functions to set and control state and its side effects. They're still relatively new, so most older projects will follow the format we did, and might have a spattering of hooks in newer components.
+
 ## Further reading
 
 You can define default props for a component using
