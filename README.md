@@ -41,7 +41,7 @@ on a terminal or command line interface (assuming that your machine already has
 [git available](https://git-scm.com/downloads)):
 
 ```
-git clone https://github.com/jenofdoom/react-intro.git
+https://github.com/catalyst/react-intro.git
 cd react-intro
 ```
 
